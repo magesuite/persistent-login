@@ -1,0 +1,15 @@
+{
+  "name": "creativestyle/magesuite-persistent-login",
+  "description": "Extension that allows the customers to login for prolonged amount of time.",
+  "type": "magento2-module",
+  "license": [
+    "OSL-3.0",
+    "AFL-3.0"
+  ],
+  "autoload": {
+    "files": [ "registration.php" ],
+    "psr-4": {
+      "MageSuite\\PersistentLogin\\": ""
+    }
+  }
+}
