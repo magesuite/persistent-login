@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="controller_action_predispatch">
+        <observer name="persistent_login_customer" instance="MageSuite\PersistentLogin\Observer\LogInCustomer" />
+
+        <observer name="persistent_synchronize" disabled="true" />
+        <observer name="persistent" disabled="true" />
+        <observer name="persistent_quote" disabled="true" />
+        <observer name="persistent_customer" disabled="true" />
+    </event>
+</config>
