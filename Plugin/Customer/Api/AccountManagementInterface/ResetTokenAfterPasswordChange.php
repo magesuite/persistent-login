@@ -42,7 +42,8 @@ class ResetTokenAfterPasswordChange
                 return $result;
             }
 
-            $session->setKey($this->mathRandom->getRandomString(\Magento\Persistent\Model\Session::KEY_LENGTH));
+            $session->setForceKeyRegeneration(true);
+            $session->setKey();
             $session->save();
 
             $session->setPersistentCookie(

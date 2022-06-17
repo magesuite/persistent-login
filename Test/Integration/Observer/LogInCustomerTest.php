@@ -37,6 +37,7 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
     }
 
     /**
+     * @magentoAppArea frontend
      * @magentoAppIsolation enabled
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
@@ -52,6 +53,7 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
     }
 
     /**
+     * @magentoAppArea frontend
      * @magentoAppIsolation enabled
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
@@ -67,6 +69,7 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
     }
 
     /**
+     * @magentoAppArea frontend
      * @magentoAppIsolation enabled
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
@@ -82,6 +85,7 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
     }
 
     /**
+     * @magentoAppArea frontend
      * @magentoAppIsolation enabled
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 0
@@ -93,6 +97,43 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
         $this->dispatch('customer/account/login');
 
         $this->assertFalse($this->customerSession->isLoggedIn());
+    }
+
+    /**
+     * @magentoAppArea frontend
+     * @magentoAppIsolation enabled
+     * @magentoDataFixture MageSuite_PersistentLogin::Test/Integration/_files/persistent_with_customer_quote_and_cookie_before_migration.php
+     * @magentoConfigFixture current_store persistent/options/enabled 1
+     */
+    public function testItMigratesTokenToTheNewFormatWhenUserEntersWithTheOldOne()
+    {
+        $expectedKeyInCookie = 'de8d828f14f22750a0d007c1a3afc2cf2f8fb21b63b71c64633f2fb8d0a090a6';
+        $expectedKeyInDatabase = 'f8075031ddd589109879650af93566b381bb53290aa11297cbcd4e824a44ffba';
+
+        $generateHashKeyMock = $this->getMockBuilder(\MageSuite\PersistentLogin\Model\GenerateHashBasedOnCustomerData::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // we need a constant value that does not depend on crypt key (random on every test execution)
+        $generateHashKeyMock->method('execute')->willReturn($expectedKeyInCookie);
+
+        $this->objectManager->removeSharedInstance(\MageSuite\PersistentLogin\Model\GenerateHashBasedOnCustomerData::class);
+        $this->objectManager->addSharedInstance(
+            $generateHashKeyMock,
+            \MageSuite\PersistentLogin\Model\GenerateHashBasedOnCustomerData::class
+        );
+
+        $oldFormatCookieKey = 'f495be79bad3d692686f63d43283c1f8f495be79bad3d69268';
+        $_COOKIE[\Magento\Persistent\Model\Session::COOKIE_NAME] = $oldFormatCookieKey; // phpcs:ignore
+
+        $this->dispatch('customer/account/login');
+
+        $keyInDatabase = $this->getPersistentSessionModel()->getKey();
+        $keyInCookie = $_COOKIE[\Magento\Persistent\Model\Session::COOKIE_NAME]; // phpcs:ignore
+
+        $this->assertTrue($this->customerSession->isLoggedIn());
+        $this->assertEquals($expectedKeyInCookie, $keyInCookie);
+        $this->assertEquals($expectedKeyInDatabase, $keyInDatabase);
     }
 
     protected function setPersistentLoginCookie(): void
