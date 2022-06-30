@@ -1,0 +1,18 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:MageSuite_Changelog:etc/changelog.xsd">
+    <module id="MageSuite_PersistentLogin" name="MageSuite_PersistentLogin">
+        <changelog>
+            <tag version="1.0.0" date="2022-04-06">
+                <entry>
+                    <type>INIT</type>
+                    <overview>Initial release</overview>
+                </entry>
+            </tag>
+            <tag version="1.2.1" date="2022-06-30">
+                <entry>
+                    <type>FIX</type>
+                    <overview>Fixed token migration after customer logs in while having old token in the database</overview>
+                </entry>
+            </tag>
+        </changelog>
+    </module>
+</config>

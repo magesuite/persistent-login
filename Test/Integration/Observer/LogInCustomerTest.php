@@ -136,6 +136,47 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
         $this->assertEquals($expectedKeyInDatabase, $keyInDatabase);
     }
 
+    /**
+     * @magentoAppArea frontend
+     * @magentoAppIsolation enabled
+     * @magentoDataFixture MageSuite_PersistentLogin::Test/Integration/_files/persistent_with_customer_quote_and_cookie_before_migration.php
+     * @magentoConfigFixture current_store persistent/options/enabled 1
+     */
+    public function testItMigratesTokenToTheNewFormatWhenUserLogsIn()
+    {
+        $expectedKeyInCookie = 'de8d828f14f22750a0d007c1a3afc2cf2f8fb21b63b71c64633f2fb8d0a090a6';
+        $expectedKeyInDatabase = 'f8075031ddd589109879650af93566b381bb53290aa11297cbcd4e824a44ffba';
+
+        $generateHashKeyMock = $this->getMockBuilder(\MageSuite\PersistentLogin\Model\GenerateHashBasedOnCustomerData::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // we need a constant value that does not depend on crypt key (random on every test execution)
+        $generateHashKeyMock->method('execute')->willReturn($expectedKeyInCookie);
+
+        $this->objectManager->removeSharedInstance(\MageSuite\PersistentLogin\Model\GenerateHashBasedOnCustomerData::class);
+        $this->objectManager->addSharedInstance(
+            $generateHashKeyMock,
+            \MageSuite\PersistentLogin\Model\GenerateHashBasedOnCustomerData::class
+        );
+
+        $this->getRequest()->setMethod(\Magento\Framework\App\Request\Http::METHOD_POST);
+        $this->getRequest()->setPostValue([
+            'login' => [
+                'username' => \MageSuite\PersistentLogin\Test\Integration\Observer\LogInCustomerTest::FIXTURE_CUSTOMER_EMAIL,
+                'password' => 'password',
+            ],
+            'persistent_remember_me' => 'on',
+        ]);
+
+        $this->dispatch('customer/account/loginPost');
+
+        $keyInDatabase = $this->getPersistentSessionModel()->getKey();
+
+        $this->assertTrue($this->customerSession->isLoggedIn());
+        $this->assertEquals($expectedKeyInDatabase, $keyInDatabase);
+    }
+
     protected function setPersistentLoginCookie(): void
     {
         $this->getPersistentSessionModel()->setPersistentCookie(86400, '/');

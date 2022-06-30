@@ -15,4 +15,11 @@
                 sortOrder="20"
         />
     </type>
+
+    <type name="Magento\Persistent\Observer\SynchronizePersistentOnLoginObserver">
+        <plugin name="migrate_old_key_on_login"
+                type="MageSuite\PersistentLogin\Plugin\Persistent\Observer\SynchronizePersistentOnLoginObserver\MigrateOldKeyOnLogin"
+                sortOrder="10"
+        />
+    </type>
 </config>
