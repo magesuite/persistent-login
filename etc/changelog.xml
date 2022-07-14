@@ -13,6 +13,13 @@
                     <overview>Fixed token migration after customer logs in while having old token in the database</overview>
                 </entry>
             </tag>
+            <tag version="1.2.2" date="2022-07-13">
+                <entry>
+                    <type>FIX</type>
+                    <overview>Fixed issue when reseting password prevented logging in with persistent login</overview>
+                    <ticket_id>MGS-4636</ticket_id>
+                </entry>
+            </tag>
         </changelog>
     </module>
 </config>
