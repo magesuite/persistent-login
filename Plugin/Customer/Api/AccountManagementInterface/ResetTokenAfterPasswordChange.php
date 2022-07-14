@@ -29,8 +29,22 @@ class ResetTokenAfterPasswordChange
 
     public function afterChangePassword(\Magento\Customer\Api\AccountManagementInterface $subject, $result, $email)
     {
+        $this->updatePersistentToken($email, true);
+
+        return $result;
+    }
+
+    public function afterResetPassword(\Magento\Customer\Api\AccountManagementInterface $subject, $result, $email)
+    {
+        $this->updatePersistentToken($email, false);
+
+        return $result;
+    }
+
+    protected function updatePersistentToken($email, $setCookie = false)
+    {
         if (!$this->persistentData->isEnabled()) {
-            return $result;
+            return;
         }
 
         try {
@@ -39,24 +53,24 @@ class ResetTokenAfterPasswordChange
             $session = $this->session->loadByCustomerId($customer->getId());
 
             if (!$session->getId()) {
-                return $result;
+                return;
             }
 
             $session->setForceKeyRegeneration(true);
             $session->setKey();
             $session->save();
 
-            $session->setPersistentCookie(
-                $this->persistentData->getLifeTime(),
-                $this->customerSession->getCookiePath()
-            );
+            if ($setCookie) {
+                $session->setPersistentCookie(
+                    $this->persistentData->getLifeTime(),
+                    $this->customerSession->getCookiePath()
+                );
+            }
         } catch (\Exception $e) {
             $this->logger->error(sprintf(
                 'Updating persistent login token after password change failed, reason: %s',
                 $e->getMessage()
             ));
         }
-
-        return $result;
     }
 }
