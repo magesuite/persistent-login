@@ -2,8 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="controller_action_predispatch">
         <observer name="persistent_login_customer" instance="MageSuite\PersistentLogin\Observer\LogInCustomer" />
-        <observer name="persistent_log_out_customer_when_token_does_not_match"
-                  instance="MageSuite\PersistentLogin\Observer\LogOutCustomerWhenTokenDoesNotMatch" />
+        <observer name="persistent_log_out_customer_when_token_does_not_match" instance="MageSuite\PersistentLogin\Observer\LogOutCustomerWhenTokenDoesNotMatch" />
 
         <observer name="persistent_synchronize" disabled="true" />
         <observer name="persistent" disabled="true" />

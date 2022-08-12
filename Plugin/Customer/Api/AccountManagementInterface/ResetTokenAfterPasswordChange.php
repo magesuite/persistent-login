@@ -5,6 +5,7 @@ namespace MageSuite\PersistentLogin\Plugin\Customer\Api\AccountManagementInterfa
 class ResetTokenAfterPasswordChange
 {
     protected \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository;
+    protected \Magento\Customer\Model\ForgotPasswordToken\GetCustomerByToken $getCustomerByToken;
     protected \Magento\Persistent\Model\Session $session;
     protected \Magento\Framework\Math\Random $mathRandom;
     protected \Magento\Persistent\Helper\Data $persistentData;
@@ -13,6 +14,7 @@ class ResetTokenAfterPasswordChange
 
     public function __construct(
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
+        \Magento\Customer\Model\ForgotPasswordToken\GetCustomerByToken $getCustomerByToken,
         \Magento\Persistent\Model\Session $session,
         \Magento\Framework\Math\Random $mathRandom,
         \Magento\Persistent\Helper\Data $persistentData,
@@ -20,6 +22,7 @@ class ResetTokenAfterPasswordChange
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->customerRepository = $customerRepository;
+        $this->getCustomerByToken = $getCustomerByToken;
         $this->session = $session;
         $this->mathRandom = $mathRandom;
         $this->persistentData = $persistentData;
@@ -34,8 +37,15 @@ class ResetTokenAfterPasswordChange
         return $result;
     }
 
-    public function afterResetPassword(\Magento\Customer\Api\AccountManagementInterface $subject, $result, $email)
+    public function aroundResetPassword(\Magento\Customer\Api\AccountManagementInterface $subject, \Closure $proceed, $email, $resetToken, $newPassword)
     {
+        if (!$email) {
+            $customer = $this->getCustomerByToken->execute($resetToken);
+            $email = $customer->getEmail();
+        }
+
+        $result = $proceed($email, $resetToken, $newPassword);
+
         $this->updatePersistentToken($email, false);
 
         return $result;

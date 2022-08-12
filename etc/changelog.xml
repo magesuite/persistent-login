@@ -20,6 +20,13 @@
                     <ticket_id>MGS-4636</ticket_id>
                 </entry>
             </tag>
+            <tag version="1.2.3" date="2022-08-12">
+                <entry>
+                    <type>FIX</type>
+                    <overview>Fixed issue when reseting password prevented logging in with persistent login</overview>
+                    <ticket_id>IPET-1517</ticket_id>
+                </entry>
+            </tag>
         </changelog>
     </module>
 </config>
