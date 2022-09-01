@@ -36,6 +36,10 @@ class LoadSessionUsingHashedKeyFromCookie
             }
         }
 
+        if($key === null) {
+            return $subject;
+        }
+
         $key = hash('sha256', $key);
 
         if ($key) {
