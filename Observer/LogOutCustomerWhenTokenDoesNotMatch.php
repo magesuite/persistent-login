@@ -58,7 +58,7 @@ class LogOutCustomerWhenTokenDoesNotMatch implements \Magento\Framework\Event\Ob
         }
 
         try {
-            $persistentSession->removePersistentCookie();
+            $persistentSession->deleteByCustomerId($this->customerSession->getCustomerId());
             $this->customerSession->logout();
 
             $controller = $observer->getControllerAction();

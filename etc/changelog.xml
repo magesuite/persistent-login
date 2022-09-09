@@ -27,6 +27,13 @@
                     <ticket_id>IPET-1517</ticket_id>
                 </entry>
             </tag>
+            <tag version="1.2.4" date="2022-09-09">
+                <entry>
+                    <type>FIX</type>
+                    <overview>Remove invalid token from database when customer tries to log in</overview>
+                    <ticket_id>IPET-1582</ticket_id>
+                </entry>
+            </tag>
         </changelog>
     </module>
 </config>
