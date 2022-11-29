@@ -36,6 +36,10 @@ class LoadSessionUsingHashedKeyFromCookie
             }
         }
 
+        if($key === null) {
+            return $subject;
+        }
+
         $key = hash('sha256', $key);
 
         if ($key) {
@@ -75,6 +79,10 @@ class LoadSessionUsingHashedKeyFromCookie
 
     protected function isOldKey($key): bool
     {
+        if ($key === null) {
+            return false;
+        }
+
         return strlen($key) === self::OLD_UNHASHED_KEY_LENGTH;
     }
 }

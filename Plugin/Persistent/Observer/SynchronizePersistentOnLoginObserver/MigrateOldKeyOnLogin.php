@@ -22,6 +22,10 @@ class MigrateOldKeyOnLogin
     {
         $session = $this->persistentSession->getSession();
 
+        if($session->getKey() === null) {
+            return $result;
+        }
+
         if (strlen($session->getKey()) !== \MageSuite\PersistentLogin\Plugin\Persistent\Model\Session\LoadSessionUsingHashedKeyFromCookie::OLD_UNHASHED_KEY_LENGTH) {
             return $result;
         }
