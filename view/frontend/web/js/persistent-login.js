@@ -25,7 +25,7 @@ define([
             $.ajax({
                 url: customerDataUrl
             })
-            .success(function(customerDataFromBackend) {
+            .done(function(customerDataFromBackend) {
                 if(customerDataFromBackend.customer.firstname !== undefined) {
                     return;
                 }

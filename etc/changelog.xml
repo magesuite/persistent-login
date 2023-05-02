@@ -34,6 +34,18 @@
                     <ticket_id>IPET-1582</ticket_id>
                 </entry>
             </tag>
+            <tag version="1.3.0" date="2022-11-29">
+                <entry>
+                    <type>FEAT</type>
+                    <overview>Compatibility with Magento 2.4.5</overview>
+                </entry>
+            </tag>
+            <tag version="1.3.1" date="2023-05-02">
+                <entry>
+                    <type>FIX</type>
+                    <overview>jQuery deprecated promise handlers replace</overview>
+                </entry>
+            </tag>
         </changelog>
     </module>
 </config>
