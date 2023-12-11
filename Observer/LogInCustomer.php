@@ -60,12 +60,11 @@ class LogInCustomer implements \Magento\Framework\Event\ObserverInterface
 
             $this->registry->register(self::CUSTOMER_WAS_LOGGED_DURING_CURRENT_REQUEST_KEY, true);
 
-            $controller = $observer->getControllerAction();
-            $request = $controller->getRequest();
-
             if (!$this->request->isAjax()) {
                 $this->actionFlag->set('', \Magento\Framework\App\ActionInterface::FLAG_NO_DISPATCH, true);
 
+                $controller = $observer->getControllerAction();
+                $request = $controller->getRequest();
                 $this->redirect->redirect($controller->getResponse(), $request->getUriString());
             }
         } catch (\Exception $e) {
