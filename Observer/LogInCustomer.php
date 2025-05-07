@@ -46,6 +46,12 @@ class LogInCustomer implements \Magento\Framework\Event\ObserverInterface
             return;
         }
 
+        if ($this->customerSession->getRedirectForPersistent()) {
+            $this->customerSession->unsRedirectForPersistent();
+
+            return;
+        }
+
         if (!$this->persistentData->isEnabled()) {
             return;
         }
@@ -65,8 +71,10 @@ class LogInCustomer implements \Magento\Framework\Event\ObserverInterface
         }
 
         try {
-            $this->customerSession->loginById($customerId);
+            $this->customerSession->loginById((int)$customerId);
             $this->registry->register(self::CUSTOMER_WAS_LOGGED_DURING_CURRENT_REQUEST_KEY, true);
+            $this->customerSession->setRedirectForPersistent(true);
+
             $this->actionFlag->set('', \Magento\Framework\App\ActionInterface::FLAG_NO_DISPATCH, true);
             $this->redirect->redirect($this->response, $this->request->getUriString());
         } catch (\Exception $e) {
