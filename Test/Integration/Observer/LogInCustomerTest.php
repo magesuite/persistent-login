@@ -1,30 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MageSuite\PersistentLogin\Test\Integration\Observer;
 
 class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractController
 {
     protected const FIXTURE_CUSTOMER_EMAIL = 'customer@example.com';
 
-    /**
-     * @var \Magento\TestFramework\ObjectManager
-     */
-    protected $objectManager;
-
-    /**
-     * @var \Magento\Customer\Model\Session
-     */
-    protected $customerSession;
-
-    /**
-     * @var \Magento\Customer\Api\CustomerRepositoryInterface
-     */
-    protected $customerRepository;
-
-    /**
-     * @var mixed
-     */
-    protected $persistentSessionFactory;
+    protected ?\Magento\TestFramework\ObjectManager $objectManager = null;
+    protected ?\Magento\Customer\Model\Session $customerSession = null;
+    protected ?\Magento\Customer\Api\CustomerRepositoryInterface $customerRepository = null;
+    protected ?\Magento\Persistent\Model\SessionFactory $persistentSessionFactory = null;
+    protected ?\Magento\Framework\Stdlib\CookieManagerInterface $cookieManager = null;
+    protected ?\Magento\Framework\Stdlib\Cookie\CookieMetadataFactory $cookieMetadataFactory = null;
 
     protected function setUp(): void
     {
@@ -34,6 +23,8 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
         $this->persistentSessionFactory = $this->objectManager->get(\Magento\Persistent\Model\SessionFactory::class);
         $this->customerRepository = $this->objectManager->get(\Magento\Customer\Api\CustomerRepositoryInterface::class);
         $this->customerSession = $this->objectManager->create(\Magento\Customer\Model\Session::class);
+        $this->cookieManager = $this->objectManager->create(\Magento\Framework\Stdlib\CookieManagerInterface::class);
+        $this->cookieMetadataFactory = $this->objectManager->create(\Magento\Framework\Stdlib\Cookie\CookieMetadataFactory::class);
     }
 
     /**
@@ -41,8 +32,9 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
      * @magentoAppIsolation enabled
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
+     * @magentoConfigFixture current_store persistent/options/logout_clear 0
      */
-    public function testItLogsCustomerInWhenHisSessionIsPersistedInCookie()
+    public function testItLogsCustomerInWhenHisSessionIsPersistedInCookie(): void
     {
         $this->assertFalse($this->customerSession->isLoggedIn());
 
@@ -57,8 +49,9 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
      * @magentoAppIsolation enabled
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
+     * @magentoConfigFixture current_store persistent/options/logout_clear 0
      */
-    public function testItRedirectsUserWhenObserverLogsUserIn()
+    public function testItRedirectsUserWhenObserverLogsUserIn(): void
     {
         $this->assertFalse($this->customerSession->isLoggedIn());
 
@@ -74,7 +67,7 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
      */
-    public function testItDoesNotLogCustomerWhenCookieIsNotThere()
+    public function testItDoesNotLogCustomerWhenCookieIsNotThere(): void
     {
         $this->assertFalse($this->customerSession->isLoggedIn());
 
@@ -90,7 +83,7 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
      * @magentoDataFixture Magento/Persistent/_files/persistent_with_customer_quote_and_cookie.php
      * @magentoConfigFixture current_store persistent/options/enabled 0
      */
-    public function testItDoesNotLogCustomerWhenFeatureIsDisabled()
+    public function testItDoesNotLogCustomerWhenFeatureIsDisabled(): void
     {
         $this->assertFalse($this->customerSession->isLoggedIn());
 
@@ -104,8 +97,9 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
      * @magentoAppIsolation enabled
      * @magentoDataFixture MageSuite_PersistentLogin::Test/Integration/_files/persistent_with_customer_quote_and_cookie_before_migration.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
+     * @magentoConfigFixture current_store persistent/options/logout_clear 0
      */
-    public function testItMigratesTokenToTheNewFormatWhenUserEntersWithTheOldOne()
+    public function testItMigratesTokenToTheNewFormatWhenUserEntersWithTheOldOne(): void
     {
         $expectedKeyInCookie = 'de8d828f14f22750a0d007c1a3afc2cf2f8fb21b63b71c64633f2fb8d0a090a6';
         $expectedKeyInDatabase = 'f8075031ddd589109879650af93566b381bb53290aa11297cbcd4e824a44ffba';
@@ -124,12 +118,12 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
         );
 
         $oldFormatCookieKey = 'f495be79bad3d692686f63d43283c1f8f495be79bad3d69268';
-        $_COOKIE[\Magento\Persistent\Model\Session::COOKIE_NAME] = $oldFormatCookieKey; // phpcs:ignore
+        $this->setCookie($oldFormatCookieKey);
 
         $this->dispatch('customer/account/login');
 
         $keyInDatabase = $this->getPersistentSessionModel()->getKey();
-        $keyInCookie = $_COOKIE[\Magento\Persistent\Model\Session::COOKIE_NAME]; // phpcs:ignore
+        $keyInCookie = $this->cookieManager->getCookie(\Magento\Persistent\Model\Session::COOKIE_NAME);
 
         $this->assertTrue($this->customerSession->isLoggedIn());
         $this->assertEquals($expectedKeyInCookie, $keyInCookie);
@@ -142,7 +136,7 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
      * @magentoDataFixture MageSuite_PersistentLogin::Test/Integration/_files/persistent_with_customer_quote_and_cookie_before_migration.php
      * @magentoConfigFixture current_store persistent/options/enabled 1
      */
-    public function testItMigratesTokenToTheNewFormatWhenUserLogsIn()
+    public function testItMigratesTokenToTheNewFormatWhenUserLogsIn(): void
     {
         $expectedKeyInCookie = 'de8d828f14f22750a0d007c1a3afc2cf2f8fb21b63b71c64633f2fb8d0a090a6';
         $expectedKeyInDatabase = 'f8075031ddd589109879650af93566b381bb53290aa11297cbcd4e824a44ffba';
@@ -200,5 +194,20 @@ class LogInCustomerTest extends \Magento\TestFramework\TestCase\AbstractControll
         $sessionModel->loadByCustomerId($customer->getId());
 
         return $sessionModel;
+    }
+
+    protected function setCookie(string $value): void
+    {
+        $publicCookieMetadata = $this->cookieMetadataFactory->createPublicCookieMetadata()
+            ->setDuration(31536000)
+            ->setPath('/')
+            ->setSecure($this->getRequest()->isSecure())
+            ->setHttpOnly(true)
+            ->setSameSite('Lax');
+        $this->cookieManager->setPublicCookie(
+            \Magento\Persistent\Model\Session::COOKIE_NAME,
+            $value,
+            $publicCookieMetadata
+        );
     }
 }
